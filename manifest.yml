@@ -1,0 +1,8 @@
+---
+applications:
+- name: EmailGeneration
+  memory: 256M
+  instances: 1
+  host: emailgeneration
+  domain: apps-np.homedepot.com
+  path: build/libs/emailgeneration-0.1.0.jar

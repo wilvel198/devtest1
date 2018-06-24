@@ -1,0 +1,52 @@
+{
+	"projectInfo": {
+		"name": "EmailGeneration",
+		"versionStrategy": "tracker",
+		"fmsNumber": "IT-08380",
+		"cdTemplate": "CD0001001",
+		"language": "java"
+	},
+	"artifactoryConfig": {
+		"artifactoryDomain": "https://maven.artifactory.homedepot.com/artifactory",
+		"artifactoryRepoKey": "libs-release-local",
+		"artifactoryRepoKeySnapshot": "libs-snapshot-local",
+		"artifactoryGroup": "com/homedepot",
+		"artifactType": "jar"
+	},
+	"fortify": {
+		"foldersToScan": "src",
+		"emailList": "guillermo_velasquez@homedepot.com"
+	},
+	"github": {
+		"org": "ION",
+		"repo": "EmailGeneration",
+		"URL": "https://github.homedepot.com/api/v3/repos"
+	},
+	"tracker": {
+		"projectId": 1775835,
+		"url": "https://www.pivotaltracker.com/"
+	},
+	"slack": {
+	"channel": "#emailservice",
+	"botName": "emailservice",
+	"emoji": ":ghost:"
+},
+	"environments": {
+		"development": {
+			"artifactCategory": "snapshot",
+			"associatedBranchName": "develop"
+		},
+		"staging": {
+			"artifactCategory": "snapshot",
+			"associatedBranchName": "master"
+		},
+		"production": {
+			"artifactCategory": "release",
+			"associatedBranchName": "master"
+		}
+	},
+	"gceConfig": {
+		"group_id": "com.homedepot",
+		"artifact_id": "EmailGeneration"
+	}
+}

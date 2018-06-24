@@ -1,0 +1,49 @@
+# Artifact Specific
+Artifact: emailgeneration
+GroupID: com.homedepot.platform
+GitHubOrg: ION
+GitHubRepo: EmailGeneration
+HealthcheckURI: /processorControllers/getHealthCheck
+# ArtifactType: bin
+ArtifactType: jar
+ 
+# Infrastructure Specific
+Autoscaling: false
+Autohealing: false
+AppPort: 8443
+
+Regions:
+- us-east1
+- us-central1    
+ 
+ 
+ProjectSpecific:
+  hd-publishing-dev:
+    StartupOpts: (hd-publishing-dev startupOpts)
+    TargetSize: 1
+    MaxNumReplicas: 3
+    Regions:
+      - us-east1
+    hd-publishing-stage:
+    StartupOpts: (hd-publishing-stage startupOpts)
+    TargetSize: 1
+    MaxNumReplicas: 3
+  hd-publishing-prod: 
+    StartupOpts: (hd-publishing-prod startupOpts)
+  MaxNumReplicas: 3
+ 
+ 
+# Deployment Specific
+Workflow: Deploy-And-Switch-Traffic
+Application: api
+DeployType: FRONTEND_API
+# Use below DeleteNonLive parameter "true" to automatically delete inactive old deployments when triggering a new one
+# DeleteNonLive: true
+# Use below UpdateRegions parameter "true" to overwrite whatever regions are currently live in your environment with those that you are passing in the VulcanConfig.yml. If this isn't set to true, if you try deploying to a different set of regions that what is live, your deployment will fail
+# UpdateRegions: true
+ 
+# Use below 2 params for app + Varnish deployment
+# Workflow: Deploy-And-Switch-Traffic-Varnish-Parallel
+# Varnish: true
+# VarnishURL: /yourAppContext/
+

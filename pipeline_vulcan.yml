@@ -1,0 +1,114 @@
+---
+resources:
+- name: emailgeneration(develop)
+  type: git
+  source:
+    uri: git@github.homedepot.com:ION/EmailGeneration.git
+    branch: master
+    private_key: {{github-private-key}}
+  check_every: 24h
+  webhook_token: {{webhook-token}}
+
+
+- name: ci
+  type: git
+  source:
+    uri: git@github.homedepot.com:ci-cd/concourse-common.git
+    branch: master
+    private_key: {{github-private-key}}
+  check_every: 24h
+  webhook_token: {{webhook-token}}
+
+- name: vulcan
+  type: git
+  source:
+    uri: git@github.homedepot.com:CloudPlatform/concourse.git
+    branch: master
+    private_key: {{github-private-key}}
+  check_every: 24h
+  webhook_token: {{webhook-token}}
+
+groups:
+- name: Snapshot
+  jobs:
+  - Dev Build Artifact
+  - Deploy To GCP Dev
+
+jobs:
+
+- name: Dev Build Artifact
+  max_in_flight: 1
+  plan:
+  - get: emailgeneration(develop)
+    trigger: true
+  - get: ci
+  - task: SQH Started
+    file: ci/concourse/sqh.yml
+    input_mapping: {code-repo: symphony(develop)}
+    params:
+      SQH_BUILD_NAME: artifactory
+      SQH_JOB_NAME: ARTIFACT
+      SQH_STATUS: STARTED
+      ENVIRONMENT: development
+      GITHUB_PRIVATE_KEY: {{github-private-key}}
+      GITHUB_TOKEN: {{github-token}}
+      TRACKER_TOKEN: {{tracker-token}}
+      SLACK_WEBHOOK_URL: {{slack-webhook-url}}
+  - task: build
+    file: symphony(develop)/concourse/maven_build.yml
+    input_mapping: {code-repo: symphony(develop)}
+    params:
+      DIST_DIRECTORY: target
+      GITHUB_PRIVATE_KEY: {{github-private-key}}
+      GITHUB_TOKEN: {{github-token}}
+      SLACK_WEBHOOK_URL: {{slack-webhook-url}}
+      RELEASETYPE: SNAPSHOT
+      GITHUB_ORG: ION
+      GITHUB_REPO: EmailGeneration
+  - task: Upload Artifact to GCS
+    config:
+      platform: linux
+      inputs:
+        - name: dist
+        - name: code-repo
+      image_resource:
+        type: docker-image
+        source:
+          repository: docker.artifactory.homedepot.com/vulcan-deploy
+          tag: latest
+          registry_mirror: https://docker.artifactory.homedepot.com
+      run:
+        dir: code-repo
+        path: vulcanDeploy
+        args:
+          - -a
+          - ../dist/emailgeneration*.jar
+    input_mapping:
+      dist: dist
+      code-repo: emailgeneration(develop)
+  - task: Upload to Artifactory
+    file: ci/concourse/artifactory_upload_artifact.yml
+    input_mapping:
+      code-repo: symphony(develop)
+    params:
+      GITHUB_PRIVATE_KEY: {{github-private-key}}
+      GITHUB_TOKEN: {{github-token}}
+      ENVIRONMENT: development
+      SLACK_WEBHOOK_URL: {{slack-webhook-url}}
+      ARTIFACTORY_TOKEN: {{artifactory-token}}
+      ARTIFACTORY_USER: {{artifactory-user}}
+
+- name: Deploy To GCP Dev
+  max_in_flight: 1
+  plan:
+  - get: emailgeneration(develop)
+    trigger: true
+    passed: [Dev Build Artifact]
+  - get: vulcan
+  - task: Build Image and Deploy to Dev
+    file: vulcan/vulcanDeploy/buildAndDeployImage.yml
+    input_mapping:
+      code-repo: emailgeneration(develop)
+    params:
+      PROJECT: hd-publishing-dev
+

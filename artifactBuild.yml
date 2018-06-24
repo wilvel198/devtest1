@@ -1,0 +1,21 @@
+- task: Upload Artifact to GCS
+  config:
+    platform: linux
+    inputs:
+      - name: dist
+      - name: code-repo
+    image_resource:
+      type: docker-image
+      source:
+        repository: docker.artifactory.homedepot.com/vulcan-deploy
+        tag: latest
+        registry_mirror: https://docker.artifactory.homedepot.com
+    run:
+      dir: code-repo
+      path: vulcanDeploy
+      args:
+        - -a
+        - ../dist/MY-ARTIFACT*.jar
+  input_mapping:
+    dist: dist
+    code-repo: MICROSERVICE-REPO
